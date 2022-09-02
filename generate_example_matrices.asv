@@ -1,0 +1,80 @@
+% Generate example matrices using new functions
+
+
+%%% Spatial correlations
+
+% Standard SOAR correlation matrix using equation (5.11) in 
+% Conditioning and preconditioning of the minimisation problem in variational data assimilation
+% SA Haben
+
+% N = dimension of correlation matrix
+% L = lengthscale: longer lengthscales = worse condition number
+% a = radius of the circle, often just set =1
+
+N = 1000; 
+L = 0.5; 
+a = 1; 
+
+B1 = SOARinv(N,L,a);
+%
+
+% Truncated spatial correlations - good if we want to guarantee a sparse
+% matrix i.e. for N very large. NB also creates a covariance matrix
+% directly by inflating the diagonal elements
+
+% N = dimension of covariance matrix
+
+%Variables:
+%n=number of points on the circle - I have been using 100 and 200
+%L - lengthscale
+%a - dimension of circle about which points are distributed
+%maxval - bandwidth given by 2*(maxval-1)
+%multval - multiplication factor applied to SOAR component
+%ridgeval - additive inflation of diagonal
+%checkval - if equal to 1 inflates matrix to guarantee positive
+%definiteness (warning, this can be costly for large N as the smallest
+%eigenvalue must be computed)
+
+maxval =100;
+multval =0.4;
+ridgeval = 0.2;
+checkval=0;
+
+Q1 = SOAReff_2_mono(N,L,a,maxval,multval,ridgeval,checkval);
+
+%%% block structure
+% creates covariance matrix with block structure via Algorithm 1 of 
+% arXiv:2105.06975
+% On diagonal blocks are SOAR + Gaussian noise
+% off-diagonal blocks are Gaussian noise 
+% all blocks are multiplied by user-chosen multiplication factor
+
+% pdist - selection of on-diagonal block correlation structure (1 = SOAR is
+% the only option currently available)
+%
+% pcorr - weighting for each block. The vector contains multiplicative
+% information for each subblock, and is ordered going across the upper
+% triangle of the matrix (including the on-diagonal blocks)
+%
+%
+
+pdist = ones([1,10]);
+pcorr = [0.8,0,0,0,0.2,0,0,0.5,0,0.6]; %large example
+
+pvec = [125,81,66,132,96];
+
+R = blockReff(pvec,pdist,pcorr);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% observation operators
+
+% Make H
+vec=randperm(N);
+vecsort = sort(vec(1:p));
+H = sparse([1:p],vecsort,ones([1,p]),p,N);
+% Make R
+
+
+
+
+
